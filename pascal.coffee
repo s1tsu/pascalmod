@@ -51,17 +51,21 @@ class PascalTri
                 @n = n
 
 
-        drawCircles: (ctx,carray,binmod,shown) ->
+        drawCircles: (ctx,carray,binmod,shown,nc,fc) ->
                 ctx.save()
                 ctx.translate(@translatex, @translatey)
                 for y in [0...@n]
                         for x in [0..y]
                                 ctx.beginPath()
                                 ctx.arc(x*@ul-y*@ul/2,y*@ul*mhrt,@ul/2,0,2*mPI)
-                                ctx.fillStyle = carray[binmod[y][x]]
-                                ctx.fill()
+                                if fc
+                                        ctx.fillStyle = carray[binmod[y][x]]
+                                        ctx.fill()
+                                else
+                                        ctx.strokeStyle = carray[binmod[y][x]]
+                                        ctx.stroke()
                                 if shown
-                                        ctx.fillStyle = "#ffffff"
+                                        ctx.fillStyle = nc
                                         ctx.fillText(binmod[y][x],x*@ul-y*@ul/2,y*@ul*mhrt,@ul/2)
 
                 # ctx.beginPath()
@@ -194,6 +198,7 @@ n = 4
 # modulo
 m = 2
 
+numberColor = "#ffffff"
 startColor = "#ffffff"
 endColor = "#0000ff"
 
@@ -201,21 +206,25 @@ tri = new PascalTri(n,el,m)
 
 
 guiparam = {
-        subdivision: n
+        steps: n
         mod: m
         showNumber: true
-        startcolor: startColor
-        endcolor: endColor
+        numberColor: numberColor
+        fillCircle: true
+        startColor: startColor
+        endColor: endColor
         naturalGradation: false
         }
 
 gui = new dat.GUI()
 
-gui.add( guiparam, 'subdivision', 2,256,1).onChange( (val) -> redraw(val);return )
+gui.add( guiparam, 'steps', 2,256,1).onChange( (val) -> redraw(val);return )
 gui.add( guiparam, 'mod', 2,15,1).onChange( (val) -> redraw(val);return )
 gui.add( guiparam, 'showNumber').onChange( (val) -> redraw(val);return )
-gui.addColor( guiparam, 'startcolor').onChange( (val) -> redraw(val);return )
-gui.addColor( guiparam, 'endcolor').onChange( (val) -> redraw(val);return )
+gui.addColor( guiparam, 'numberColor').onChange( (val) -> redraw(val);return )
+gui.add( guiparam, 'fillCircle').onChange( (val) -> redraw(val);return )
+gui.addColor( guiparam, 'startColor').onChange( (val) -> redraw(val);return )
+gui.addColor( guiparam, 'endColor').onChange( (val) -> redraw(val);return )
 gui.add( guiparam, 'naturalGradation').onChange( (val) -> redraw(val);return )
 
 col_array = (sc,ec,m,nat=true) ->
@@ -229,11 +238,14 @@ col_array = (sc,ec,m,nat=true) ->
                 return ('#'+(mfloor((i*eci + (m-1-i)*sci)/(m-1))).toString(16).padStart(6,'0') for i in [0...m])
 
 redraw = (val) ->
-        n = guiparam.subdivision
+        # {n,m,shown,nc,sc,ec,ng} = guiparam
+        n = guiparam.steps
         m = guiparam.mod
         shown = guiparam.showNumber
-        sc = guiparam.startcolor
-        ec = guiparam.endcolor
+        nc = guiparam.numberColor
+        fc = guiparam.fillCircle
+        sc = guiparam.startColor
+        ec = guiparam.endColor
         ng = guiparam.naturalGradation
         carray = col_array(sc,ec,m,ng)
         tri = new PascalTri(n,el,m)
@@ -251,7 +263,7 @@ redraw = (val) ->
 
         # triangle
         clearCanvas(tctx)
-        tri.drawCircles(tctx,carray,binomMod(n,m),shown)
+        tri.drawCircles(tctx,carray,binomMod(n,m),shown,nc,fc)
 
 
 
